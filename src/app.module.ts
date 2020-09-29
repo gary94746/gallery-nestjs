@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PhotoModule } from './photo/photo.module';
+import { Photo } from './photo/entities/photo.entity';
+import { Category } from './photo/entities/category';
 
 @Module({
   imports: [
@@ -13,7 +15,7 @@ import { PhotoModule } from './photo/photo.module';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [],
+      entities: [Photo, Category],
       synchronize: true,
     }),
     PhotoModule,

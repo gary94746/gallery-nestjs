@@ -1,8 +1,8 @@
 import { PrimaryGeneratedColumn, Entity, Column, OneToMany } from 'typeorm';
 import { Category } from './category';
 
-@Entity({})
-export abstract class Photo {
+@Entity()
+export class Photo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

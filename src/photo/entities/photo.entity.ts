@@ -17,9 +17,10 @@ export class Photo {
   name: string;
 
   @Column({
-    default: new Date(),
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
   })
-  createdAt: Date;
+  createdAt: string;
 
   @Column({
     type: 'varchar',

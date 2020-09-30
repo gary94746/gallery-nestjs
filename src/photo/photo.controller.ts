@@ -4,11 +4,14 @@ import {
   UploadedFile,
   Post,
   Get,
+  Body,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PhotoService } from './photo.service';
 import { v4 as uuid } from 'uuid';
+import { ImageDto } from './dto/image.dto';
 
 @Controller('photo')
 export class PhotoController {
@@ -34,13 +37,16 @@ export class PhotoController {
   async uploadFile(
     @UploadedFile()
     file: any,
+    @Body() photo: ImageDto,
   ) {
     const fileName = file.filename.split('.')[0];
+    try {
+      const image = await this.photoService.save(photo, file.path);
+      await this.photoService.saveImages(fileName, file.mimetype, file.path);
 
-    return await this.photoService.saveImages(
-      fileName,
-      file.mimetype,
-      file.path,
-    );
+      return image;
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
   }
 }

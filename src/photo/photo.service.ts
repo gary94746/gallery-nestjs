@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Photo } from './entities/photo.entity';
 import { Sizes } from './entities/sizes';
+import { ImageDto } from './dto/image.dto';
 
 @Injectable()
 export class PhotoService {
@@ -16,13 +17,13 @@ export class PhotoService {
     private readonly sizeRepository: Repository<Sizes>,
   ) {}
 
-  async save(image, imageSavedPath: string) {
+  async save(image: ImageDto, imageSavedPath: string) {
     try {
       const savedImage = await this.photoRepository.save(image);
       const originalSize = await this.sizeRepository.save({
         url: `public/uploads/${imageSavedPath}`,
         size: 'original',
-        photo: savedImage.id,
+        photo: savedImage,
       });
 
       return savedImage;
@@ -32,13 +33,13 @@ export class PhotoService {
   }
 
   async saveImages(name: string, mimetype: string, filePath: string) {
-    const path = `${process.cwd()}/public/uploads`;
+    const path = `./public/uploads`;
     const [, ext] = mimetype.split('/');
 
     const thumbnails = this.widths.map(async width => {
       return await sharp(filePath)
         .resize({ width })
-        .toFile(`${path}/${name}x${width}.${ext}`);
+        .toFile(`$path}/${name}x${width}.${ext}`);
     });
 
     try {

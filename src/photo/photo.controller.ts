@@ -4,7 +4,6 @@ import {
   UploadedFile,
   Post,
   Get,
-  Res,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -13,12 +12,7 @@ import { v4 as uuid } from 'uuid';
 
 @Controller('photo')
 export class PhotoController {
-  sizes: string[];
-
   constructor(private photoService: PhotoService) {}
-
-  @Get()
-  async getImage(@Res() res: any) {}
 
   @Post()
   @UseInterceptors(

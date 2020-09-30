@@ -1,11 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import * as sharp from 'sharp';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Photo } from './entities/photo.entity';
+import { Sizes } from './entities/sizes';
 
 @Injectable()
 export class PhotoService {
   widths = [150, 250, 350, 450];
 
-  constructor() {}
+  constructor(
+    @InjectRepository(Photo)
+    private readonly photoRepository: Repository<Photo>,
+    @InjectRepository(Sizes)
+    private readonly sizeRepository: Repository<Sizes>,
+  ) {}
+
+  async save(image, imageSavedPath: string) {
+    try {
+      const savedImage = await this.photoRepository.save(image);
+      const originalSize = await this.sizeRepository.save({
+        url: `public/uploads/${imageSavedPath}`,
+        size: 'original',
+        photo: savedImage.id,
+      });
+
+      return savedImage;
+    } catch (error) {
+      throw new Error('Error to performe save operation');
+    }
+  }
 
   async saveImages(name: string, mimetype: string, filePath: string) {
     const path = `${process.cwd()}/public/uploads`;

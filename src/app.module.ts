@@ -4,6 +4,7 @@ import { PhotoModule } from './photo/photo.module';
 import { Photo } from './photo/entities/photo.entity';
 import { Category } from './photo/entities/category';
 import { MulterModule } from '@nestjs/platform-express';
+import { Sizes } from './photo/entities/sizes';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { MulterModule } from '@nestjs/platform-express';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [Photo, Category],
+      entities: [Photo, Category, Sizes],
       synchronize: true,
     }),
     PhotoModule,

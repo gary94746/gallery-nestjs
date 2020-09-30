@@ -1,5 +1,6 @@
 import { PrimaryGeneratedColumn, Entity, Column, OneToMany } from 'typeorm';
 import { Category } from './category';
+import { Sizes } from './sizes';
 
 @Entity()
 export class Photo {
@@ -8,12 +9,6 @@ export class Photo {
 
   @Column({ type: 'varchar', length: 300 })
   alt_description: string;
-
-  @OneToMany(
-    type => Category,
-    category => category.id,
-  )
-  categories: Category[];
 
   @Column({
     type: 'varchar',
@@ -31,4 +26,16 @@ export class Photo {
     length: 500,
   })
   description: string;
+
+  @OneToMany(
+    type => Category,
+    category => category.id,
+  )
+  categories: Category[];
+
+  @OneToMany(
+    type => Sizes,
+    sizes => sizes.id,
+  )
+  sizes: Sizes[];
 }

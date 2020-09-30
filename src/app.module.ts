@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PhotoModule } from './photo/photo.module';
 import { Photo } from './photo/entities/photo.entity';
 import { Category } from './photo/entities/category';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -19,8 +18,11 @@ import { Category } from './photo/entities/category';
       synchronize: true,
     }),
     PhotoModule,
+    MulterModule.register({
+      dest: '/home/gary94746/workspace/gary-projects/gallery/gallery/src/files',
+    }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

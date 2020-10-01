@@ -42,7 +42,6 @@ export class PhotoController {
     file: any,
   ) {
     const fileName = file.filename.split('.')[0];
-    console.log(fileName);
     try {
       await this.photoService.saveImages(fileName, file.mimetype, file.path);
     } catch (e) {

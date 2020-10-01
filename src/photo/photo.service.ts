@@ -39,17 +39,38 @@ export class PhotoService {
     }
   }
 
-  async saveImages(name: string, mimetype: string, filePath: string) {
+  async saveImages(
+    name: string,
+    mimetype: string,
+    filePath: string,
+    photoId: string,
+  ) {
     const [, ext] = mimetype.split('/');
+
+    const path = (width: number) =>
+      `./${this.folderPath}/${name}x${width}.${ext}`;
 
     const thumbnails = this.widths.map(async width => {
       return await sharp(filePath)
         .resize({ width })
-        .toFile(`./${this.folderPath}/${name}x${width}.${ext}`);
+        .toFile(path(width));
     });
 
     try {
-      return await Promise.all(thumbnails);
+      const thumbnailsInfo = await Promise.all(thumbnails);
+
+      const photo = new Photo();
+      photo.id = photoId;
+
+      const mapedThumbnails = thumbnailsInfo.map(info => {
+        return {
+          url: path(info.width),
+          size: info.width.toString(),
+          photo,
+        };
+      });
+
+      await this.sizeRepository.save(mapedThumbnails);
     } catch (e) {
       console.log(e);
     }

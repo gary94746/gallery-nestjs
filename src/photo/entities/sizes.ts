@@ -1,9 +1,15 @@
-import { Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Photo } from './photo.entity';
 
 @Entity()
 export class Sizes {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()

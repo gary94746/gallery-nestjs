@@ -3,13 +3,11 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { PhotoService } from '../photo.service';
-import { switchMap, catchError } from 'rxjs/operators';
-import { from, of, throwError } from 'rxjs';
-import { Not } from 'typeorm';
+import { switchMap, catchError, tap } from 'rxjs/operators';
+import { from, throwError } from 'rxjs';
 
 @Injectable()
 export class ValidateId implements NestInterceptor {
@@ -22,6 +20,11 @@ export class ValidateId implements NestInterceptor {
     const id = context.switchToHttp().getRequest().params.id;
 
     return from(this.service.findById(id)).pipe(
+      tap(e => {
+        if (!e) {
+          throw new NotFoundException('Id was not found');
+        }
+      }),
       catchError(e => {
         if ((e.name = 'QueryFailedError')) {
           throw new NotFoundException('Id was not found');

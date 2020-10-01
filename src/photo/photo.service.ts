@@ -24,6 +24,15 @@ export class PhotoService {
     });
   }
 
+  async findByIdAndSize(id: string, size: string) {
+    return this.sizeRepository.findOne({
+      where: {
+        size,
+        photo: id,
+      },
+    });
+  }
+
   async save(image: ImageDto) {
     try {
       return await this.photoRepository.save(image);

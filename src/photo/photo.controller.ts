@@ -8,6 +8,8 @@ import {
   InternalServerErrorException,
   Param,
   BadRequestException,
+  Query,
+  Res,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,6 +21,24 @@ import { ImageDto } from './dto/image.dto';
 @Controller('photo')
 export class PhotoController {
   constructor(private photoService: PhotoService) {}
+
+  @Get()
+  async getImage(
+    @Query('id') id: string,
+    @Query('size') size: string,
+    @Res() res: any,
+  ) {
+    try {
+      const result = await this.photoService.findByIdAndSize(id, size);
+      if (result) {
+        res.sendFile(result.url, { root: './' });
+      } else {
+        throw new BadRequestException(`${id} with size ${size} was not found`);
+      }
+    } catch (e) {
+      throw new BadRequestException(`${id} with size ${size} was not found`);
+    }
+  }
 
   @Post()
   async savePhoto(@Body() photo: ImageDto) {
@@ -33,12 +53,12 @@ export class PhotoController {
         destination: (_: any, __: any, cb: any) => cb(null, './public/uploads'),
         filename: (_: any, file: any, cb: any) => {
           const [, ext] = file.mimetype.split('/');
-          cb(null, `${uuid()}.${ext}`);
+          cb(null, `${uuid()}.${ext}`); // rename file as uuid() + ext
         },
       }),
       limits: {
         files: 1,
-        fileSize: 1e7, // 100mb
+        fileSize: 1e7, // set file limit to 100mb
       },
     }),
   )
@@ -47,7 +67,9 @@ export class PhotoController {
     @UploadedFile()
     file: any,
   ) {
-    if (!file) throw new BadRequestException('field >image< is required');
+    if (!file) {
+      throw new BadRequestException('field >image< is required');
+    }
 
     const fileName = file.filename.split('.')[0];
     try {

@@ -24,16 +24,9 @@ export class PhotoService {
     });
   }
 
-  async save(image: ImageDto, imageSavedPath: string) {
+  async save(image: ImageDto) {
     try {
-      const savedImage = await this.photoRepository.save(image);
-      await this.sizeRepository.save({
-        url: `${this.folderPath}${imageSavedPath}`,
-        size: 'original',
-        photo: savedImage,
-      });
-
-      return savedImage;
+      return await this.photoRepository.save(image);
     } catch (error) {
       throw new Error('Error to performe save operation');
     }

@@ -39,6 +39,13 @@ export class PhotoService {
     }
   }
 
+  async saveSize(photoId: string, path: string, size: string = 'original') {
+    const photo = new Photo();
+    photo.id = photoId;
+
+    return await this.sizeRepository.save([{ url: './' + path, size, photo }]);
+  }
+
   async saveImages(
     name: string,
     mimetype: string,

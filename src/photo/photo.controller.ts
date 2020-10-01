@@ -42,6 +42,7 @@ export class PhotoController {
   ) {
     const fileName = file.filename.split('.')[0];
     try {
+      await this.photoService.saveSize(id, file.path);
       await this.photoService.saveImages(
         fileName,
         file.mimetype,

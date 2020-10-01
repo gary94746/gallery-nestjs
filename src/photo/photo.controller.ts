@@ -6,19 +6,21 @@ import {
   Get,
   Body,
   InternalServerErrorException,
+  Param,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PhotoService } from './photo.service';
 import { v4 as uuid } from 'uuid';
-import { ImageDto } from './dto/image.dto';
+import { ValidateId } from './interceptors/validateId.interceptor';
 
 @Controller('photo')
 export class PhotoController {
   constructor(private photoService: PhotoService) {}
 
-  @Post()
+  @Post(':id')
   @UseInterceptors(
+    ValidateId,
     FileInterceptor('image', {
       storage: diskStorage({
         destination: (req: Express.Request, file: any, cb) =>
@@ -35,16 +37,14 @@ export class PhotoController {
     }),
   )
   async uploadFile(
+    @Param('id') id: string,
     @UploadedFile()
     file: any,
-    @Body() photo: ImageDto,
   ) {
     const fileName = file.filename.split('.')[0];
+    console.log(fileName);
     try {
-      const image = await this.photoService.save(photo, file.path);
       await this.photoService.saveImages(fileName, file.mimetype, file.path);
-
-      return image;
     } catch (e) {
       throw new InternalServerErrorException();
     }

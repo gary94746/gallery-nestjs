@@ -9,6 +9,7 @@ import { ImageDto } from './dto/image.dto';
 @Injectable()
 export class PhotoService {
   widths = [150, 250, 350, 450];
+  folderPath = 'public/uploads/';
 
   constructor(
     @InjectRepository(Photo)
@@ -17,11 +18,17 @@ export class PhotoService {
     private readonly sizeRepository: Repository<Sizes>,
   ) {}
 
+  async findById(id: string) {
+    return await this.photoRepository.findOne({
+      id,
+    });
+  }
+
   async save(image: ImageDto, imageSavedPath: string) {
     try {
       const savedImage = await this.photoRepository.save(image);
-      const originalSize = await this.sizeRepository.save({
-        url: `public/uploads/${imageSavedPath}`,
+      await this.sizeRepository.save({
+        url: `${this.folderPath}${imageSavedPath}`,
         size: 'original',
         photo: savedImage,
       });
@@ -33,13 +40,12 @@ export class PhotoService {
   }
 
   async saveImages(name: string, mimetype: string, filePath: string) {
-    const path = `./public/uploads`;
     const [, ext] = mimetype.split('/');
 
     const thumbnails = this.widths.map(async width => {
       return await sharp(filePath)
         .resize({ width })
-        .toFile(`$path}/${name}x${width}.${ext}`);
+        .toFile(`./${this.folderPath}/${name}x${width}.${ext}`);
     });
 
     try {

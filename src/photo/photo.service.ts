@@ -35,16 +35,14 @@ export class PhotoService {
   }
 
   async save(image: ImageDto) {
-    const categories = image.category.map(({ id }) => {
+    const categories = image.categories.map(({ id }) => {
       const category = new Category();
       category.id = id;
       return category;
     });
+    image.categories = categories;
 
-    return await this.photoRepository.save({
-      ...image,
-      categories,
-    });
+    return await this.photoRepository.save(image);
   }
 
   async saveSize(photoId: string, path: string, size: string = 'original') {

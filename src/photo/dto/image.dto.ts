@@ -30,7 +30,7 @@ export class ImageDto {
   @IsNotEmpty()
   @ArrayMinSize(1)
   @Type(() => UUIDCategory)
-  category: UUIDCategory[];
+  categories: UUIDCategory[];
 }
 
 export class UUIDCategory {

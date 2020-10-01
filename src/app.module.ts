@@ -19,9 +19,7 @@ import { Sizes } from './photo/entities/sizes';
       synchronize: true,
     }),
     PhotoModule,
-    MulterModule.register({
-      dest: '/home/gary94746/workspace/gary-projects/gallery/gallery/src/files',
-    }),
+    MulterModule.register(),
   ],
   controllers: [],
   providers: [],

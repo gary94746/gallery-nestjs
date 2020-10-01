@@ -4,6 +4,8 @@ import {
   Column,
   OneToMany,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Category } from './category';
 import { Sizes } from './sizes';
@@ -34,10 +36,8 @@ export class Photo {
   })
   description: string;
 
-  @ManyToOne(
-    type => Category,
-    category => category.id,
-  )
+  @ManyToMany(type => Category)
+  @JoinTable()
   categories: Category[];
 
   @OneToMany(

@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsString, Length, Max } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  Length,
+  IsArray,
+  ValidateNested,
+  IsUUID,
+  ArrayMinSize,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ImageDto {
   @IsNotEmpty()
@@ -16,8 +25,15 @@ export class ImageDto {
   @Length(10, 500)
   description: string;
 
+  @IsArray()
+  @ValidateNested({ each: true })
   @IsNotEmpty()
-  @IsString()
-  @Length(10, 300)
-  category: string;
+  @ArrayMinSize(1)
+  @Type(() => UUIDCategory)
+  category: UUIDCategory[];
+}
+
+export class UUIDCategory {
+  @IsUUID('4')
+  id: string;
 }

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Photo } from './entities/photo.entity';
 import { Sizes } from './entities/sizes';
 import { ImageDto } from './dto/image.dto';
+import { Category } from './entities/category';
 
 @Injectable()
 export class PhotoService {
@@ -34,11 +35,16 @@ export class PhotoService {
   }
 
   async save(image: ImageDto) {
-    try {
-      return await this.photoRepository.save(image);
-    } catch (error) {
-      throw new Error('Error to performe save operation');
-    }
+    const categories = image.category.map(({ id }) => {
+      const category = new Category();
+      category.id = id;
+      return category;
+    });
+
+    return await this.photoRepository.save({
+      ...image,
+      categories,
+    });
   }
 
   async saveSize(photoId: string, path: string, size: string = 'original') {

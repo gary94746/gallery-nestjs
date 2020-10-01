@@ -42,7 +42,15 @@ export class PhotoController {
 
   @Post()
   async savePhoto(@Body() photo: ImageDto) {
-    return this.photoService.save(photo);
+    try {
+      return await this.photoService.save(photo);
+    } catch (e) {
+      if (e.name === 'QueryFailedError')
+        throw new BadRequestException('Category id was not found');
+      else {
+        throw new InternalServerErrorException();
+      }
+    }
   }
 
   @Post(':id')

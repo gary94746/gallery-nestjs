@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Photo } from './photo.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Category {
@@ -11,10 +10,4 @@ export class Category {
     length: 250,
   })
   category: string;
-
-  @OneToMany(
-    type => Photo,
-    photo => photo.id,
-  )
-  photo: Photo;
 }

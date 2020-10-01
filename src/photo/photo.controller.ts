@@ -23,9 +23,8 @@ export class PhotoController {
     ValidateId,
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: (req: Express.Request, file: any, cb) =>
-          cb(null, './public/uploads'),
-        filename: (req: Express.Request, file: any, cb) => {
+        destination: (_: any, __: any, cb: any) => cb(null, './public/uploads'),
+        filename: (_: any, file: any, cb: any) => {
           const [, ext] = file.mimetype.split('/');
           cb(null, `${uuid()}.${ext}`);
         },
@@ -43,7 +42,12 @@ export class PhotoController {
   ) {
     const fileName = file.filename.split('.')[0];
     try {
-      await this.photoService.saveImages(fileName, file.mimetype, file.path);
+      await this.photoService.saveImages(
+        fileName,
+        file.mimetype,
+        file.path,
+        id,
+      );
     } catch (e) {
       throw new InternalServerErrorException();
     }

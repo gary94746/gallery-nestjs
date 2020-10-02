@@ -17,12 +17,13 @@ import { PhotoService } from './photo.service';
 import { v4 as uuid } from 'uuid';
 import { ValidateId } from './interceptors/validateId.interceptor';
 import { ImageDto } from './dto/image.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('photo')
 export class PhotoController {
   constructor(private photoService: PhotoService) {}
 
-  @Get()
+  @Get('rezise')
   async getImage(
     @Query('id') id: string,
     @Query('size') size: string,
@@ -38,6 +39,17 @@ export class PhotoController {
     } catch (e) {
       throw new BadRequestException(`${id} with size ${size} was not found`);
     }
+  }
+
+  @Get()
+  findAndPaginate(@Query() pagination: PaginationDto) {
+    pagination.page = Number(pagination.page);
+    pagination.limit = Number(pagination.limit);
+
+    return this.photoService.findAll({
+      ...pagination,
+      limit: pagination.limit < 10 ? 10 : pagination.limit,
+    });
   }
 
   @Post()

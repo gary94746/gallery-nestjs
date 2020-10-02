@@ -6,6 +6,7 @@ import { Photo } from './entities/photo.entity';
 import { Sizes } from './entities/sizes';
 import { ImageDto } from './dto/image.dto';
 import { Category } from './entities/category';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class PhotoService {
@@ -18,6 +19,25 @@ export class PhotoService {
     @InjectRepository(Sizes)
     private readonly sizeRepository: Repository<Sizes>,
   ) {}
+
+  async findAll(pagination: PaginationDto) {
+    const skippedItems = (pagination.page - 1) * pagination.page;
+
+    const totalCount = await this.photoRepository.count();
+    const photos = await this.photoRepository
+      .createQueryBuilder()
+      .orderBy('"createdAt"', 'DESC')
+      .offset(skippedItems)
+      .limit(pagination.limit)
+      .getMany();
+
+    return {
+      totalCount,
+      page: pagination.page,
+      limit: pagination.limit,
+      data: photos,
+    };
+  }
 
   async findById(id: string) {
     return await this.photoRepository.findOne({

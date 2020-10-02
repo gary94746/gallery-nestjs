@@ -21,15 +21,17 @@ export class PhotoService {
   ) {}
 
   async findAll(pagination: PaginationDto) {
-    const skippedItems = (pagination.page - 1) * pagination.page;
+    const skippedItems = (pagination.page - 1) * pagination.limit;
 
     const totalCount = await this.photoRepository.count();
-    const photos = await this.photoRepository
-      .createQueryBuilder()
-      .orderBy('"createdAt"', 'DESC')
-      .offset(skippedItems)
-      .limit(pagination.limit)
-      .getMany();
+    const photos = await this.photoRepository.find({
+      relations: ['categories'],
+      skip: skippedItems,
+      take: pagination.limit,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
 
     return {
       totalCount,

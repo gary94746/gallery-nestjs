@@ -23,7 +23,7 @@ import { PaginationDto } from './dto/pagination.dto';
 export class PhotoController {
   constructor(private photoService: PhotoService) {}
 
-  @Get('rezise')
+  @Get('resize')
   async getImage(
     @Query('id') id: string,
     @Query('size') size: string,

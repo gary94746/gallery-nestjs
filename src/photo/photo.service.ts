@@ -18,6 +18,8 @@ export class PhotoService {
     private readonly photoRepository: Repository<Photo>,
     @InjectRepository(Sizes)
     private readonly sizeRepository: Repository<Sizes>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async findAll(pagination: PaginationDto) {
@@ -39,6 +41,10 @@ export class PhotoService {
       limit: pagination.limit,
       data: photos,
     };
+  }
+
+  async findAllCategories() {
+    return this.categoryRepository.find();
   }
 
   async findById(id: string) {

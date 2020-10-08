@@ -62,6 +62,16 @@ export class PhotoService {
     });
   }
 
+  async findByIdAndSizeRelation(id: string, size: string) {
+    return this.sizeRepository.findOne({
+      where: {
+        size,
+        photo: id,
+      },
+      relations: ['photo'],
+    });
+  }
+
   async save(image: ImageDto) {
     const categories = image.categories.map(({ id }) => {
       const category = new Category();

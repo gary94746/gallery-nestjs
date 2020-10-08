@@ -10,6 +10,7 @@ import {
   BadRequestException,
   Query,
   Res,
+  NotFoundException,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -50,6 +51,30 @@ export class PhotoController {
       ...pagination,
       limit: pagination.limit < 10 ? 10 : pagination.limit,
     });
+  }
+
+  @Get('download/:id')
+  async downloadImage(@Param('id') photoId: string, @Res() res) {
+    try {
+      const result = await this.photoService.findByIdAndSize(
+        photoId,
+        'original',
+      );
+
+      const lastIndex = result.url.lastIndexOf('.');
+      const ext = result.url.slice(lastIndex + 1, result.url.length);
+
+      if (result) {
+        res.header('Content-Disposition', 'attachment; filename=' + result.id);
+        res.header('Content-Type', `image/${ext}`);
+        res.sendFile(result.url, { root: './' });
+      } else {
+        throw new NotFoundException(`${photoId}  was not found`);
+      }
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException(`${photoId} was not found`);
+    }
   }
 
   @Post()

@@ -7,6 +7,7 @@ import { Sizes } from './entities/sizes';
 import { ImageDto } from './dto/image.dto';
 import { Category } from './entities/category';
 import { PaginationDto } from './dto/pagination.dto';
+import * as fs from 'fs';
 
 @Injectable()
 export class PhotoService {
@@ -20,7 +21,12 @@ export class PhotoService {
     private readonly sizeRepository: Repository<Sizes>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {}
+  ) {
+    if (!fs.existsSync('./' + this.folderPath)) {
+      fs.mkdirSync('./public');
+      fs.mkdirSync('./public/uploads');
+    }
+  }
 
   async findAll(pagination: PaginationDto) {
     const skippedItems = (pagination.page - 1) * pagination.limit;

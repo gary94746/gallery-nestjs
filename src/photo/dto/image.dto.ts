@@ -28,7 +28,6 @@ export class ImageDto {
   @IsArray()
   @ValidateNested({ each: true })
   @IsNotEmpty()
-  @ArrayMinSize(1)
   @Type(() => UUIDCategory)
   categories: UUIDCategory[];
 }

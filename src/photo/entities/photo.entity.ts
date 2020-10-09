@@ -7,8 +7,8 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { Category } from './category';
-import { Sizes } from './sizes';
+import { Category } from './category.entity';
+import { Sizes } from './sizes.entity';
 
 @Entity()
 export class Photo {

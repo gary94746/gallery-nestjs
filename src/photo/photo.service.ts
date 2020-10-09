@@ -3,9 +3,9 @@ import * as sharp from 'sharp';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Photo } from './entities/photo.entity';
-import { Sizes } from './entities/sizes';
+import { Sizes } from './entities/sizes.entity';
 import { ImageDto } from './dto/image.dto';
-import { Category } from './entities/category';
+import { Category } from './entities/category.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import * as fs from 'fs';
 

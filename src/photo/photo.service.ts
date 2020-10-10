@@ -28,6 +28,10 @@ export class PhotoService {
     }
   }
 
+  fileExists(filePath: string) {
+    return fs.existsSync(filePath);
+  }
+
   async findAll(pagination: PaginationDto) {
     const skippedItems = (pagination.page - 1) * pagination.limit;
 

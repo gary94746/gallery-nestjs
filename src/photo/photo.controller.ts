@@ -33,7 +33,11 @@ export class PhotoController {
     try {
       const result = await this.photoService.findByIdAndSize(id, size);
       if (result) {
-        res.sendFile(result.url, { root: './' });
+        res.sendFile(result.url, { root: './' }, err => {
+          if (err) {
+            res.sendStatus(404);
+          }
+        });
       } else {
         throw new BadRequestException(`${id} with size ${size} was not found`);
       }

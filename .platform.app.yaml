@@ -8,8 +8,7 @@ mounts:
     source_path: uploads
 hooks: 
   build: |
-    yarn install
-    yarn build
+    npm build
 web:
   commands: 
     start: "node dist/main.js"

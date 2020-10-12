@@ -6,7 +6,11 @@ mounts:
   'web/uploads':
     source: local
     source_path: uploads
-
+hooks: 
+  build: |
+    yarn install
+    yarn build
 web:
   commands: 
     start: "node dist/main.js"
+disk: 512

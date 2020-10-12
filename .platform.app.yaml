@@ -1,0 +1,12 @@
+name: app
+
+type: 'nodejs:14'
+
+mounts:
+  'web/uploads':
+    source: local
+    source_path: uploads
+
+web:
+  commands: 
+    start: "node dist/main.js"

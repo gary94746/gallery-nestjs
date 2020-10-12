@@ -64,19 +64,19 @@ export class PhotoController {
         photoId,
         'original',
       );
-
-      const lastIndex = result.url.lastIndexOf('.');
-      const ext = result.url.slice(lastIndex + 1, result.url.length);
-
       if (result) {
+        const lastIndex = result.url.lastIndexOf('.');
+        const ext = result.url.slice(lastIndex + 1, result.url.length);
+
         res.header('Content-Disposition', 'attachment; filename=' + result.id);
         res.header('Content-Type', `image/${ext}`);
-        res.sendFile(result.url, { root: './' });
+        res.sendFile(result.url, { root: './' }, error => {
+          if (error) res.sendStatus(404);
+        });
       } else {
         throw new NotFoundException(`${photoId}  was not found`);
       }
     } catch (e) {
-      console.log(e);
       throw new BadRequestException(`${photoId} was not found`);
     }
   }

@@ -1,4 +1,4 @@
-# GalleryFronted
+# GalleryBackend
 
 Simple gallery app with NestJs and angular in [Fronted](https://github.com/gary94746/gallery-angular)
 

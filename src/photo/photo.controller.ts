@@ -57,13 +57,14 @@ export class PhotoController {
     });
   }
 
-  @Get('download/:id')
-  async downloadImage(@Param('id') photoId: string, @Res() res) {
+  @Get('download/:id/:size')
+  async downloadImage(
+    @Param('id') photoId: string,
+    @Param('size') size: string,
+    @Res() res,
+  ) {
     try {
-      const result = await this.photoService.findByIdAndSize(
-        photoId,
-        'original',
-      );
+      const result = await this.photoService.findByIdAndSize(photoId, size);
       if (result) {
         const lastIndex = result.url.lastIndexOf('.');
         const ext = result.url.slice(lastIndex + 1, result.url.length);

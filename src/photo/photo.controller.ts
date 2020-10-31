@@ -12,17 +12,31 @@ import {
   Res,
   NotFoundException,
 } from '@nestjs/common';
-import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PhotoService } from './photo.service';
-import { v4 as uuid } from 'uuid';
 import { ValidateId } from './interceptors/validateId.interceptor';
 import { ImageDto } from './dto/image.dto';
 import { PaginationDto } from './dto/pagination.dto';
+import { PhotoAwsService } from './photo-aws.service';
+import { Express } from 'express';
 
 @Controller('photo')
 export class PhotoController {
-  constructor(private photoService: PhotoService) {}
+  constructor(
+    private photoService: PhotoService,
+    private readonly photoAwsService: PhotoAwsService,
+  ) {}
+
+  @Get('image')
+  async getOne(@Res() res) {
+    const e = await this.photoAwsService.getOne('');
+    res.writeHead(200, {
+      'Content-Type': 'image/jpeg',
+      'Content-disposition': 'attachment;filename=' + 'gary.jpeg',
+    });
+
+    res.end(Buffer.from(e.Body as any, 'binary'));
+  }
 
   @Get('resize')
   async getImage(
@@ -96,22 +110,7 @@ export class PhotoController {
   }
 
   @Post(':id')
-  @UseInterceptors(
-    ValidateId,
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: (_: any, __: any, cb: any) => cb(null, './public/uploads'),
-        filename: (_: any, file: any, cb: any) => {
-          const [, ext] = file.mimetype.split('/');
-          cb(null, `${uuid()}.${ext}`); // rename file as uuid() + ext
-        },
-      }),
-      limits: {
-        files: 1,
-        fileSize: 1e7, // set file limit to 100mb
-      },
-    }),
-  )
+  @UseInterceptors(ValidateId, FileInterceptor('image'))
   async uploadFile(
     @Param('id') id: string,
     @UploadedFile()
@@ -121,15 +120,18 @@ export class PhotoController {
       throw new BadRequestException('field >image< is required');
     }
 
-    const fileName = file.filename.split('.')[0];
+    const fileName = file.originalname;
     try {
-      await this.photoService.saveSize(id, file.path);
-      await this.photoService.saveImages(
-        fileName,
-        file.mimetype,
-        file.path,
-        id,
-      );
+      const obj = await this.photoService.saveSize(id, file.path);
+      /*await this.photoService.saveImages(*/
+      //fileName,
+      //file.mimetype,
+      //file.path,
+      //id,
+      /*);*/
+
+      await this.photoAwsService.uploadPublicFile(file.buffer, fileName);
+      return obj;
     } catch (e) {
       throw new InternalServerErrorException();
     }

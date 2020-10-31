@@ -6,10 +6,12 @@ import { PhotoController } from './photo.controller';
 import { CategoryController } from './category.controller';
 import { PhotoService } from './photo.service';
 import { Sizes } from './entities/sizes.entity';
+import { PhotoAwsService } from './photo-aws.service';
+import { ConfigService } from 'aws-sdk';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Photo, Category, Sizes])],
-  providers: [PhotoService],
+  providers: [PhotoService, PhotoAwsService, ConfigService],
   controllers: [PhotoController, CategoryController],
 })
 export class PhotoModule {}

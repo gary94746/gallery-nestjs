@@ -7,16 +7,13 @@ import { Sizes } from './entities/sizes.entity';
 import { ImageDto } from './dto/image.dto';
 import { Category } from './entities/category.entity';
 import { PaginationDto } from './dto/pagination.dto';
-import * as fs from 'fs';
 import { from, combineLatest } from 'rxjs';
-import { map, tap, flatMap } from 'rxjs/operators';
+import { map, flatMap } from 'rxjs/operators';
 import { S3 } from 'aws-sdk';
-import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class PhotoService {
   widths = [150, 250, 350, 450];
-  folderPath = 'public/uploads/';
 
   constructor(
     @InjectRepository(Photo)
@@ -25,16 +22,7 @@ export class PhotoService {
     private readonly sizeRepository: Repository<Sizes>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {
-    if (!fs.existsSync('./' + this.folderPath)) {
-      fs.mkdirSync('./public');
-      fs.mkdirSync('./public/uploads');
-    }
-  }
-
-  fileExists(filePath: string) {
-    return fs.existsSync(filePath);
-  }
+  ) {}
 
   async findAll(pagination: PaginationDto) {
     const skippedItems = (pagination.page - 1) * pagination.limit;
@@ -124,6 +112,7 @@ export class PhotoService {
     const photo = new Photo();
     photo.id = file.photoId;
 
+    // save into bucked and database
     const originalFile = from(
       this.saveToBucked(
         file.file,
@@ -134,18 +123,21 @@ export class PhotoService {
     );
 
     const thumbnailsImgs = from(this.widths).pipe(
+      // resize image with current width
       flatMap(width =>
         sharp(file.file)
           .resize({ width })
           .toBuffer(),
       ),
       flatMap((buffer, index) =>
+        // save the rezised image in to the bucket
         this.saveToBucked(
           buffer,
           this.getComposedFileName(index, file.photoId, file.name),
         ),
       ),
       map((uploadedFile, index) =>
+        // save into db
         this.saveSize(
           file.photoId,
           uploadedFile.Location,
@@ -154,44 +146,8 @@ export class PhotoService {
       ),
     );
 
+    // return the original image and the generated thumbnails images
     return combineLatest(originalFile, thumbnailsImgs);
-  }
-
-  async saveImages(
-    name: string,
-    mimetype: string,
-    filePath: string,
-    photoId: string,
-  ) {
-    const [, ext] = mimetype.split('/');
-
-    const path = (width: number) =>
-      `./${this.folderPath}/${name}x${width}.${ext}`;
-
-    const thumbnails = this.widths.map(async width => {
-      return await sharp(filePath)
-        .resize({ width })
-        .toFile(path(width));
-    });
-
-    try {
-      const thumbnailsInfo = await Promise.all(thumbnails);
-
-      const photo = new Photo();
-      photo.id = photoId;
-
-      const mapedThumbnails = thumbnailsInfo.map(info => {
-        return {
-          url: path(info.width),
-          size: info.width.toString(),
-          photo,
-        };
-      });
-
-      await this.sizeRepository.save(mapedThumbnails);
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   getComposedFileName(index: number, photoId: string, fileName: string) {

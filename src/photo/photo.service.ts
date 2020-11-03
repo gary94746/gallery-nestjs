@@ -61,6 +61,7 @@ export class PhotoService {
         size,
         photo: id,
       },
+      relations: ['photo'],
     });
   }
 

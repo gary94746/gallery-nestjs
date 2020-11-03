@@ -10,7 +10,6 @@ import {
   BadRequestException,
   Query,
   Res,
-  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PhotoService } from './photo.service';
@@ -18,7 +17,6 @@ import { ValidateId } from './interceptors/validateId.interceptor';
 import { ImageDto } from './dto/image.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { PhotoAwsService } from './photo-aws.service';
-import { combineLatest } from 'rxjs';
 
 @Controller('photo')
 export class PhotoController {
@@ -26,17 +24,6 @@ export class PhotoController {
     private photoService: PhotoService,
     private readonly photoAwsService: PhotoAwsService,
   ) {}
-
-  @Get('image')
-  async getOne(@Res() res) {
-    const e = await this.photoAwsService.getOne('');
-    res.writeHead(200, {
-      'Content-Type': 'image/jpeg',
-      'Content-disposition': 'attachment;filename=' + 'gary.jpeg',
-    });
-
-    res.end(Buffer.from(e.Body as any, 'binary'));
-  }
 
   @Get('resize')
   async getImage(
@@ -49,8 +36,8 @@ export class PhotoController {
       if (result) {
         const file = await this.photoAwsService.getOne(result.url);
         res.writeHead(200, {
-          'Content-Type': 'image/jpeg',
-          'Content-disposition': 'attachment;filename=' + 'gary.jpeg',
+          'Content-Type': 'image/' + file.Metadata.format || 'jpeg',
+          'Content-disposition': 'attachment;filename=' + result.photo.name,
         });
 
         res.end(Buffer.from(file.Body as any, 'binary'));
@@ -82,16 +69,17 @@ export class PhotoController {
     try {
       const result = await this.photoService.findByIdAndSize(photoId, size);
       if (result) {
-        const lastIndex = result.url.lastIndexOf('.');
-        const ext = result.url.slice(lastIndex + 1, result.url.length);
-
-        res.header('Content-Disposition', 'attachment; filename=' + result.id);
-        res.header('Content-Type', `image/${ext}`);
-        res.sendFile(result.url, { root: './' }, error => {
-          if (error) res.sendStatus(404);
+        const file = await this.photoAwsService.getOne(result.url);
+        res.writeHead(200, {
+          'Content-Type': 'image/' + file.Metadata.format || 'jpeg',
+          'Content-disposition': 'attachment;filename=' + result.photo.name,
         });
+
+        res.end(Buffer.from(file.Body as any, 'binary'));
       } else {
-        throw new NotFoundException(`${photoId}  was not found`);
+        throw new BadRequestException(
+          `${photoId} with size ${size} was not found`,
+        );
       }
     } catch (e) {
       throw new BadRequestException(`${photoId} was not found`);

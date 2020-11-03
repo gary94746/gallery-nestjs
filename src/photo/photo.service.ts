@@ -92,13 +92,17 @@ export class PhotoService {
     return await this.sizeRepository.save([{ url: path, size, photo }]);
   }
 
-  async saveToBucked(Body: Buffer, Key: string) {
+  async saveToBucked(Body: Buffer, Key: string, format: string, size: string) {
     const s3 = new S3();
     return s3
       .upload({
         Bucket: 'gallery-nestjs',
         Body,
         Key,
+        Metadata: {
+          format,
+          size,
+        },
       })
       .promise();
   }
@@ -116,10 +120,12 @@ export class PhotoService {
     const originalFile = from(
       this.saveToBucked(
         file.file,
-        `${file.photoId}${this.getFileExtention(file.name)}`,
+        `${file.photoId}.${this.getFileExtention(file.name)}`,
+        this.getFileExtention(file.name),
+        'original',
       ),
     ).pipe(
-      flatMap(image => this.saveSize(file.photoId, image.Location, 'original')),
+      flatMap(image => this.saveSize(file.photoId, image.Key, 'original')),
     );
 
     const thumbnailsImgs = from(this.widths).pipe(
@@ -127,21 +133,27 @@ export class PhotoService {
       flatMap(width =>
         sharp(file.file)
           .resize({ width })
-          .toBuffer(),
+          .toBuffer({ resolveWithObject: true }),
       ),
-      flatMap((buffer, index) =>
+      flatMap(data =>
         // save the rezised image in to the bucket
         this.saveToBucked(
-          buffer,
-          this.getComposedFileName(index, file.photoId, file.name),
+          data.data,
+          this.getComposedFileName(
+            data.info.width,
+            file.photoId,
+            data.info.format,
+          ),
+          data.info.format,
+          data.info.width.toString(),
         ),
       ),
-      map((uploadedFile, index) =>
+      map(uploadedFile =>
         // save into db
         this.saveSize(
           file.photoId,
-          uploadedFile.Location,
-          this.getSizeByIndex(index).toString(),
+          uploadedFile.Key,
+          this.getSizeFromKey(uploadedFile.Key),
         ),
       ),
     );
@@ -150,10 +162,8 @@ export class PhotoService {
     return combineLatest(originalFile, thumbnailsImgs);
   }
 
-  getComposedFileName(index: number, photoId: string, fileName: string) {
-    return `${photoId}x${this.getSizeByIndex(index)}${this.getFileExtention(
-      fileName,
-    )}`;
+  getComposedFileName(width: number, photoId: string, format: string) {
+    return `${photoId}x${width}.${format}`;
   }
 
   getSizeByIndex(index: number) {
@@ -161,7 +171,12 @@ export class PhotoService {
   }
 
   getFileExtention(fileName: string) {
-    const lastDot = fileName.lastIndexOf('.');
+    const lastDot = fileName.lastIndexOf('.') + 1;
     return fileName.slice(lastDot, fileName.length);
+  }
+
+  getSizeFromKey(key: string) {
+    const lastX = key.lastIndexOf('x');
+    return key.slice(lastX + 1, lastX + 4);
   }
 }

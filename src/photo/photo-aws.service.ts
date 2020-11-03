@@ -27,7 +27,7 @@ export class PhotoAwsService {
     return s3
       .getObject({
         Bucket: 'gallery-nestjs',
-        Key: '3119a516-b1fe-4aac-b815-99bb19ae3519-1833299.jpg',
+        Key: key,
       })
       .promise();
   }

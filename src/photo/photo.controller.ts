@@ -47,11 +47,13 @@ export class PhotoController {
     try {
       const result = await this.photoService.findByIdAndSize(id, size);
       if (result) {
-        res.sendFile(result.url, { root: './' }, err => {
-          if (err) {
-            res.sendStatus(404);
-          }
+        const file = await this.photoAwsService.getOne(result.url);
+        res.writeHead(200, {
+          'Content-Type': 'image/jpeg',
+          'Content-disposition': 'attachment;filename=' + 'gary.jpeg',
         });
+
+        res.end(Buffer.from(file.Body as any, 'binary'));
       } else {
         throw new BadRequestException(`${id} with size ${size} was not found`);
       }
@@ -130,7 +132,6 @@ export class PhotoController {
 
       return buckedStoredImages;
     } catch (e) {
-      console.log(e);
       throw new InternalServerErrorException();
     }
   }

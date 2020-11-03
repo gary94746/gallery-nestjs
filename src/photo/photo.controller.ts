@@ -18,7 +18,7 @@ import { ValidateId } from './interceptors/validateId.interceptor';
 import { ImageDto } from './dto/image.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { PhotoAwsService } from './photo-aws.service';
-import { Express } from 'express';
+import { combineLatest } from 'rxjs';
 
 @Controller('photo')
 export class PhotoController {
@@ -120,19 +120,17 @@ export class PhotoController {
       throw new BadRequestException('field >image< is required');
     }
 
-    const fileName = file.originalname;
     try {
-      const obj = await this.photoService.saveSize(id, file.path);
-      /*await this.photoService.saveImages(*/
-      //fileName,
-      //file.mimetype,
-      //file.path,
-      //id,
-      /*);*/
+      const buckedStoredImages = this.photoService.saveImage({
+        file: file.buffer,
+        name: file.originalname,
+        mimetype: file.mimetype,
+        photoId: id,
+      });
 
-      await this.photoAwsService.uploadPublicFile(file.buffer, fileName);
-      return obj;
+      return buckedStoredImages;
     } catch (e) {
+      console.log(e);
       throw new InternalServerErrorException();
     }
   }

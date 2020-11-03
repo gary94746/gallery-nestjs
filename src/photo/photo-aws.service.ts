@@ -7,22 +7,19 @@ import { promisify } from 'util';
 export class PhotoAwsService {
   constructor() {}
 
-  async uploadPublicFile(dataBuffer: Buffer, filename: string) {
+  async uploadPublicFile(
+    photoId: string,
+    dataBuffer: Buffer,
+    filename: string,
+  ) {
     const s3 = new S3();
-    const uploadResult = await s3
+    return await s3
       .upload({
         Bucket: 'gallery-nestjs',
         Body: dataBuffer,
-        Key: `${uuid()}-${filename}`,
+        Key: `${photoId}-${filename}`,
       })
       .promise();
-
-    /*    const newFile = this.publicFilesRepository.create({*/
-    //key: uploadResult.Key,
-    //url: uploadResult.Location,
-    //});
-    /*await this.publicFilesRepository.save(newFile);*/
-    return 'created';
   }
 
   async getOne(key: string) {

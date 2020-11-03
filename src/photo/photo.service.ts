@@ -8,6 +8,10 @@ import { ImageDto } from './dto/image.dto';
 import { Category } from './entities/category.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import * as fs from 'fs';
+import { from, combineLatest } from 'rxjs';
+import { map, tap, flatMap } from 'rxjs/operators';
+import { S3 } from 'aws-sdk';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class PhotoService {
@@ -93,11 +97,64 @@ export class PhotoService {
     return await this.photoRepository.save(image);
   }
 
-  async saveSize(photoId: string, path: string, size: string = 'original') {
+  async saveSize(photoId: string, path: string, size: string) {
     const photo = new Photo();
     photo.id = photoId;
 
-    return await this.sizeRepository.save([{ url: './' + path, size, photo }]);
+    return await this.sizeRepository.save([{ url: path, size, photo }]);
+  }
+
+  async saveToBucked(Body: Buffer, Key: string) {
+    const s3 = new S3();
+    return s3
+      .upload({
+        Bucket: 'gallery-nestjs',
+        Body,
+        Key,
+      })
+      .promise();
+  }
+
+  saveImage(file: {
+    name: string;
+    mimetype: string;
+    file: Buffer;
+    photoId: string;
+  }) {
+    const photo = new Photo();
+    photo.id = file.photoId;
+
+    const originalFile = from(
+      this.saveToBucked(
+        file.file,
+        `${file.photoId}${this.getFileExtention(file.name)}`,
+      ),
+    ).pipe(
+      flatMap(image => this.saveSize(file.photoId, image.Location, 'original')),
+    );
+
+    const thumbnailsImgs = from(this.widths).pipe(
+      flatMap(width =>
+        sharp(file.file)
+          .resize({ width })
+          .toBuffer(),
+      ),
+      flatMap((buffer, index) =>
+        this.saveToBucked(
+          buffer,
+          this.getComposedFileName(index, file.photoId, file.name),
+        ),
+      ),
+      map((uploadedFile, index) =>
+        this.saveSize(
+          file.photoId,
+          uploadedFile.Location,
+          this.getSizeByIndex(index).toString(),
+        ),
+      ),
+    );
+
+    return combineLatest(originalFile, thumbnailsImgs);
   }
 
   async saveImages(
@@ -135,5 +192,20 @@ export class PhotoService {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  getComposedFileName(index: number, photoId: string, fileName: string) {
+    return `${photoId}x${this.getSizeByIndex(index)}${this.getFileExtention(
+      fileName,
+    )}`;
+  }
+
+  getSizeByIndex(index: number) {
+    return this.widths[index];
+  }
+
+  getFileExtention(fileName: string) {
+    const lastDot = fileName.lastIndexOf('.');
+    return fileName.slice(lastDot, fileName.length);
   }
 }

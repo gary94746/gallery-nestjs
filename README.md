@@ -24,4 +24,7 @@ docker build -t gallery-backend .
 docker run --name gallery-backend -d -p 3000:3000 gallery-backend
 ```
 
+## Note
+Master store images locally, to store in your s3 bucket checkout to branch aws
+
 This project was hosted on heroku
